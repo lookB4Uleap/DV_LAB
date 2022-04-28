@@ -1,0 +1,416 @@
+---
+title: "Lab 2"
+subtitle: "Reg no : 19BCE1278"
+author: "Name : Anish Sarkar"
+date: "Date : 29/01/2022"
+output: html_document
+---
+
+
+```{r}
+library(MASS)
+data(survey)
+View(survey)
+survey <- na.omit(survey)
+head(survey)
+```
+
+# Scatterplot
+
+```{r}
+library(ggplot2)
+gg <- ggplot(survey, aes(x=Wr.Hnd, y=NW.Hnd)) + 
+  geom_point(aes(col=Sex, size=Pulse)) + 
+  geom_smooth(method="loess", se=F) +
+  labs(subtitle="Writing Hand Span Vs Non-writing Hand Span", 
+       x="Wrting Hand Span", 
+       y="Non-writing Hand Span", 
+       title="Scatterplot", 
+       caption = "Source: survey from MASS")
+plot(gg)
+```
+
+```{r}
+library(ggalt)
+survey_select <- survey[survey$Wr.Hnd < 20 &
+                          survey$NW.Hnd <= 19 &
+                          survey$Pulse <= 100 &
+                          survey$Smoke == "Never", ]
+gg1<-ggplot(survey, aes(x=Wr.Hnd, y=NW.Hnd)) + 
+  geom_point(aes(col=Sex, size=Pulse)) +   # draw points
+  geom_smooth(method="loess", se=F) + 
+  geom_encircle(aes(x=Wr.Hnd, y=NW.Hnd), 
+                data=survey_select, 
+                color="red", 
+                size=2, 
+                expand=0.08) +   # encircle
+  labs(subtitle="Writing Hand Span Vs Non-Writing Hand Span", 
+       x="Wrting Hand Span", 
+       y="Non Writing Hand Span", 
+       title="Scatterplot + Encircle", 
+       caption="Source: survey from MASS")
+plot(gg1)
+```
+
+
+```{r}
+g <- ggplot(survey, aes(NW.Hnd, Wr.Hnd))
+g + geom_point() + 
+  geom_smooth(method="lm", se=F) +
+    labs(subtitle="Non-Writing Hand Span vs Writing Hand Span", 
+       y="Writing Hand Span", 
+       x="Non-Writing Hand Span", 
+       title="Scatterplot with overlapping points", 
+       caption="Source: survey")
+
+g <- ggplot(survey, aes(Height, Age))
+g + geom_jitter(width = .5, size=1) +
+  labs(subtitle="Height vs Age", 
+       y="Age", 
+       x="Height", 
+       title="Jittered Points")
+```
+
+# Scatterplot
+
+```{r}
+theme_set(theme_bw())  # pre-set the bw theme.
+g <- ggplot(survey, aes(W.Hnd, Wr.Hnd))
+g + geom_count(col="tomato3", show.legend=F) +
+  labs(title="Writing Hand vs Writing Hand Span", 
+       y="Writing Hand Span", 
+       x="Writing Hand")
+
+```
+
+# Bubble Plot
+
+```{r}
+g <- ggplot(survey, aes(Wr.Hnd, NW.Hnd)) + 
+  labs(subtitle="Writing Hand Span vs Non-writing Hand Span",
+       title="Bubble chart")
+
+g + geom_jitter(aes(col=Sex, size=Pulse)) + 
+  geom_smooth(aes(col=Sex), method="lm", se=F)
+```
+
+# Marginal Histogram
+
+```{r}
+qplot(survey$Pulse, geom="histogram") 
+ggplot(data=survey, aes(survey$Pulse)) + 
+  geom_histogram()
+qplot(survey$Pulse,
+      geom="histogram",
+      binwidth = 5,  
+      main = "Histogram for Pulse", 
+      xlab = "Pulse",  
+      fill=I("blue"), 
+      col=I("red"), 
+      alpha=I(.4),
+      xlim=c(10,100))
+ggplot(data=survey, aes(survey$Pulse)) + 
+  geom_histogram(breaks=seq(10, 100, by=2), 
+                 col="red", 
+                 aes(fill=..count..)) +
+  scale_fill_gradient("Count", low="green", high="red")+labs(title="Histogram for survey", x="Pulse", y="Count")
+ggplot(data=survey, aes(survey$Pulse)) + 
+  geom_histogram(aes(y =..density..), 
+                 breaks=seq(10, 100, by = 2), 
+                 col="red", 
+                 fill="green", 
+                 alpha=.2) + 
+  geom_density(col=2) 
+```
+
+# Stacked Bar
+
+```{r}
+g <- ggplot(survey, aes(Pulse)) + scale_fill_brewer(palette = "Spectral")
+
+g + geom_histogram(aes(fill=Sex), 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) +  # change binwidth
+  labs(title="Histogram with Auto Binning", 
+       subtitle="Pulse across gender")  
+
+g + geom_histogram(aes(fill=Sex), 
+                   bins=5, 
+                   col="black", 
+                   size=.1) +   # change number of bins
+  labs(title="Histogram with Fixed Bins", 
+       subtitle="Pulse across gender") 
+
+g <- ggplot(survey, aes(Clap))
+g + geom_bar(aes(fill=Sex), width = 0.5) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(title="Histogram on Categorical Variable", 
+       subtitle="Clapping hand across gender") 
+
+```
+
+# Density plot
+
+```{r}
+g <- ggplot(survey, aes(Exer))
+g + geom_density(aes(fill=factor(Smoke)), alpha=0.8) + 
+  labs(title="Density plot", 
+       subtitle="Exercising Grouped by Smoking Habit",
+       caption="Source: survey",
+       x="Exercise",
+       fill="Smoke")
+```
+
+# Box Plot
+
+```{r}
+g <- ggplot(survey, aes(Exer, Pulse))
+g + geom_boxplot(varwidth=T, fill="plum") + 
+  labs(title="Box plot", 
+       subtitle="Pulse grouped by Exercising Habit",
+       caption="Source: survey",
+       x="Exercise",
+       y="Pulse")
+```
+
+# Correlation plot
+
+```{r}
+# correlation plot
+library(ggcorrplot)
+
+# Correlation matrix
+corr <- round(cor(survey[c(2,3,6,10,12)]), 1)
+
+# Plot
+ggcorrplot(corr)
+ggcorrplot(corr, method = "circle")
+ggcorrplot(corr, hc.order = TRUE, outline.col = "white")
+```
+
+
+```{r}
+# Get the lower triangle
+ggcorrplot(corr, hc.order = TRUE, type = "lower",
+           outline.col = "white")
+# Get the upeper triangle
+ggcorrplot(corr, hc.order = TRUE, type = "upper",
+           outline.col = "white")
+# Change colors and theme
+# --------------------------------
+# Argument colors
+ggcorrplot(corr, hc.order = TRUE, type = "lower",
+           outline.col = "white",
+           ggtheme = ggplot2::theme_gray,
+           colors = c("#6D9EC1", "white", "#E46726"))
+
+ggcorrplot(corr, hc.order = TRUE, 
+           type = "lower", 
+           lab = TRUE, 
+           lab_size = 3, 
+           method="circle", 
+           colors = c("tomato2", "white", "springgreen3"), 
+           title="Correlogram of mtcars", 
+           ggtheme=theme_bw)
+
+
+```
+
+# Diverging Barcharts
+
+```{r}
+# Diverging Barcharts - 1
+
+survey$wr_hnd_z <- round((survey$Wr.Hnd - mean(survey$Wr.Hnd))/sd(survey$Wr.Hnd), 2)  # compute normalized mpg
+survey$wr_hnd_type <- ifelse(survey$wr_hnd_z < 0, "below", "above")  # above / below avg flag
+survey <- survey[order(survey$wr_hnd_z), ]  # sort
+
+
+ggplot(survey, aes(x=Smoke, y=wr_hnd_z, label=wr_hnd_z)) + 
+  geom_bar(stat='identity', aes(fill=wr_hnd_type), width=.5)  +
+  scale_fill_manual(name="Writing Hand Span", 
+                    labels = c("Above Average", "Below Average"), 
+                    values = c("above"="#00ba38", "below"="#f8766d")) + 
+  labs(subtitle="Normalised Writing Hand Span", 
+       title= "Diverging Bars 1") + 
+  coord_flip()  
+
+#Diverging bars
+data("mtcars")  # load data
+mtcars$`car name` <- rownames(mtcars)  # create new column for car names
+mtcars$mpg_z <- round((mtcars$mpg - mean(mtcars$mpg))/sd(mtcars$mpg), 2)  # compute normalized mpg
+mtcars$mpg_type <- ifelse(mtcars$mpg_z < 0, "below", "above")  # above / below avg flag
+mtcars <- mtcars[order(mtcars$mpg_z), ]  # sort
+mtcars$`car name` <- factor(mtcars$`car name`, levels = mtcars$`car name`)  # convert to factor to retain sorted order in plot.
+
+# Diverging Barcharts - 2
+ggplot(mtcars, aes(x=`car name`, y=mpg_z, label=mpg_z)) + 
+  geom_bar(stat='identity', aes(fill=mpg_type), width=.5)  +
+  scale_fill_manual(name="Mileage", 
+                    labels = c("Above Average", "Below Average"), 
+                    values = c("above"="#00ba38", "below"="#f8766d")) + 
+  labs(subtitle="Normalised mileage from 'mtcars'", 
+       title= "Diverging Bars 2") + 
+  coord_flip()
+```
+
+# Diverging Lollipop Chart
+
+```{r}
+# Diverging Lollipop Chart - 1
+ggplot(survey, aes(x=Smoke, y=wr_hnd_z, label=wr_hnd_z)) + 
+  geom_point(stat='identity', fill="black", size=6)  +
+  geom_segment(aes(y = 0, 
+                   x = Smoke, 
+                   yend = wr_hnd_z, 
+                   xend = Smoke), 
+               color = "black") +
+  geom_text(color="white", size=2) +
+  labs(title="Diverging Lollipop Chart 1", 
+       subtitle="Normalized Writing Hand Span : Lollipop") + 
+  ylim(-2.5, 2.5) +
+  coord_flip()
+
+  
+# Diverging Lollipop Chart - 2
+ggplot(mtcars, aes(x=`car name`, y=mpg_z, label=mpg_z)) + 
+  geom_point(stat='identity', fill="black", size=6)  +
+  geom_segment(aes(y = 0, 
+                   x = `car name`, 
+                   yend = mpg_z, 
+                   xend = `car name`), 
+               color = "black") +
+  geom_text(color="white", size=2) +
+  labs(title="Diverging Lollipop Chart 2", 
+       subtitle="Normalized mileage from 'mtcars': Lollipop") + 
+  ylim(-2.5, 2.5) +
+  coord_flip()
+```
+
+# Diverging Dot Plot
+
+```{r}
+#Diverging Dot Plot - 1
+ggplot(survey, aes(x=Smoke, y=wr_hnd_z, label=wr_hnd_z)) + 
+  geom_point(stat='identity', aes(col=wr_hnd_type), size=6)  +
+  scale_color_manual(name="Mileage", 
+                     labels = c("Above Average", "Below Average"), 
+                     values = c("above"="#00ba38", "below"="#f8766d")) + 
+  geom_text(color="white", size=2) +
+  labs(title="Diverging Dot Plot 1", 
+       subtitle="Normalized Writing Hand Span : Dotplot") + 
+  ylim(-2.5, 2.5) +
+  coord_flip()
+
+#Diverging Dot Plot - 2
+ggplot(mtcars, aes(x=`car name`, y=mpg_z, label=mpg_z)) + 
+  geom_point(stat='identity', aes(col=mpg_type), size=6)  +
+  scale_color_manual(name="Mileage", 
+                     labels = c("Above Average", "Below Average"), 
+                     values = c("above"="#00ba38", "below"="#f8766d")) + 
+  geom_text(color="white", size=2) +
+  labs(title="Diverging Dot Plot 2", 
+       subtitle="Normalized mileage from 'mtcars': Dotplot") + 
+  ylim(-2.5, 2.5) +
+  coord_flip()
+
+```
+
+# Pie Chart, Violin Plot and Box Plot
+
+```{r}
+# pie chart
+
+pie <- ggplot(survey, aes(x = "", fill = factor(Smoke))) + 
+  geom_bar(width = 1) +
+  theme(axis.line = element_blank(), 
+        plot.title = element_text(hjust=0.5)) + 
+  labs(fill="class", 
+       x=NULL, 
+       y=NULL, 
+       title="Pie Chart of Smoke", 
+       caption="Source: mpg")
+
+pie + coord_polar(theta = "y", start=0)
+
+
+# Violin Plot
+g <- ggplot(survey, aes(Smoke, Pulse))
+g + geom_violin() + 
+  labs(title="Violin plot", 
+       subtitle="Smoking Habit vs Pulse",
+       caption="Source: survey",
+       x="Smoking Habit",
+       y="Pulse")
+
+# Boxplot
+# g <- ggplot(mpg, aes(class, cty))
+g + geom_boxplot(varwidth=T, fill="plum") + 
+  labs(title="Box plot", 
+       subtitle="Pulse grouped by Smoking Habit",
+       caption="Source: survey",
+       x="Smoking Habit",
+       y="Pulse")
+
+# Boxplot
+# g <- ggplot(mpg, aes(class, cty))
+g + geom_boxplot(aes(fill=Smoke)) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(title="Box plot", 
+       subtitle="Pulse grouped by Smoking Habit",
+       caption="Source: survey",
+       x="Smoking Habit",
+       y="Pulse")
+```
+
+# Dot + Box Plot
+
+```{r}
+#Dot + Box Plot
+g <- ggplot(survey, aes(Clap, Wr.Hnd))
+g + geom_boxplot() + 
+  geom_dotplot(binaxis='y', 
+               stackdir='center', 
+               dotsize = .5, 
+               fill="red") +
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(title="Box plot + Dot plot", 
+       subtitle="Writing Hand Span vs Clapping Habit : Each dot represents 1 row in source data",
+       caption="Source: survey",
+       x="Clapping Habit",
+       y="Writing Hand Span")
+
+```
+
+# Treemap
+
+```{r}
+library("httr")
+library("readxl")
+GET("https://query.data.world/s/ndq4zkdtoqh2bgjqyi26iwiftogvhg", write_disk(tf <- tempfile(fileext = ".xlsx")))
+data <- read_excel(tf)
+
+library(treemapify)
+
+ggplot(data, aes(area=`Square meters`, fill=City)) + 
+  geom_treemap() + labs(title = "Comparison of Cost of Living in Various Cities across the World")
+
+```
+
+
+```{r}
+proglangs <- read.csv("https://raw.githubusercontent.com/selva86/datasets/master/proglanguages.csv")
+ggplot(proglangs, aes(area=value, fill=parent, subgroup=parent)) + 
+  geom_treemap()+
+  #main group bordering
+  geom_treemap_subgroup_border()+
+  #subgroup heading in white
+  geom_treemap_subgroup_text(color="white")+
+  #all other group text in black
+  geom_treemap_text(aes(label=id), color="black")+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_brewer(palette = "Dark2")
+```
+

@@ -1,0 +1,166 @@
+---
+title: "LAB 1"
+author: "Anish Sarkar"
+register number: "19BCE1278"
+date: "07/01/2022"
+output: html_document
+---
+
+# Name : Anish Sarkar
+# Reg no : 19BCE1278
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ex-1. Basic Datatypes in R
+```{r}
+#1) Assign a decimal value to a variable A and display it.
+A <- 10.5
+print(A)
+
+#2) Print the class name of the variable A.
+print(class(A))
+
+#3) Check whether the variable A is of type 'numeric'.
+print(is.numeric(A))
+
+#4) Assign an integer value to a variable B and display it.
+B <- 5L
+print(B)
+
+#5) Check whether the variable B is of type 'integer'.
+print(is.integer(B))
+
+#6) Create a variable C which stores the integer part of variable A.
+C=as.integer(A)
+print(C)
+
+#7) Compute the cost of a chocolate.
+cost <- C/B
+print(cost)
+
+#8) Represent the money as character string.
+as.character(A)
+
+#9) Store the first name and last name of the kid.
+fname="Ram"
+lname="kumar"
+
+print(is.integer(fname))
+
+#10) Display the message "Ram bought <B> chocolates"
+print(sprintf("%s bought %d chocolates", paste(fname,lname), B))
+
+#11) Extract the substring "Little" from the rhymes.
+rhymes="Twinkle Twinkle Little Star"
+print(substr(rhymes,start=17,stop=22))
+
+#12) Replace "Little" as Big.
+print(sub("Little", "Big", rhymes))
+
+#13) Assign a complex number to a variable X.
+X <- 2+4i
+X
+
+#14) Display the real part of X.
+print(Re(X))
+
+#15) Display the imaginary part of X.
+print(Im(X))
+
+#16) Compute square root of a negative number
+print(sqrt(as.complex(-2))) #sqrt(-2+0i) also works
+
+#17) Check whether real part of X is greater than its imaginary part.
+chk <- Re(X)>Im(X)
+print(chk)
+```
+
+## Ex-2. Working with Vectors
+```{r}
+#1. Create vector 'class' to store the class names 'class1','class2',.,'class5'
+class=c("class1", "class2","class3","class4","class5")
+print(class)
+
+#2. Use assign() function to create a vector 'avg' to store the average marks.
+assign("avg",c(63.5,72.3,88.9,65.4,79.8))
+print(avg)
+
+#3. Display the average mark of class2.
+print(avg[2])
+
+#4. Combine the vectors 'class' and 'avg' as details.
+details=c(class,avg)
+print(details)
+
+#5. Find the length of combined vector 'details'.
+print(length(details))
+
+#6. Find the minimum average mark and print the class which scored it.
+print(min(avg))
+print(class[which.min(avg)]) #which.min(avg)returns the index of the minimum value in vector avg
+
+#7. Find the maximum average mark and print the class which scored it.
+print(max(avg))
+print(class[which.max(avg)])
+
+#8. Find the total of average marks scored by all classes.
+print(sum(avg))
+
+#9. Find the mean of the average marks scored by all classes.
+print(mean(avg))
+
+#10. Find the standard deviation of the average marks scored by all classes.
+print(sd(avg))
+
+#11. Arrange the average marks in ascending order.
+print(sort(avg))
+
+#12. Create a vector classes by repeat the vector class twice.
+classes <- rep(class,times=2)
+print(classes)
+
+#13. Create a vector marks by repeating each average mark twice.
+marks <- rep(avg,each=2)
+print(marks)
+
+#14. Create a sequence of 10 to 1. Add it to the vector avg and display it.
+s=seq(10,1)
+print(avg+s)
+
+#15. Create a vector bool that contains logical values 'TRUE' or 'FALSE' depending on the condition average marks>70.
+bool=avg>70
+print(class[bool])
+```
+
+## Ex-3. Working with matrix
+```{r}
+#1. Represent the height information of a team of 12 basketball players as a matrix of dimension 4x3 in row major form.
+height=matrix(c(162,173,160,181,159,176,183,162,181,160,170,172),nrow=4,ncol=3,byrow=TRUE)
+print(height)
+
+#2. Display the height at row 3 and column 2.
+print(height[3,2])
+
+#3. Display all the heights in row 2.
+print(height[2,])
+
+#Display all the heights in column 3.
+print(height[,3])
+
+#5. Extract the heights in all rows but only in column 1 and 3.
+print(height[,c(1,3)])
+
+#6. Find the transpose of the matrix.
+print(t(height))
+
+#7. Four more players got added to the team. Update the matrix to reflect the heights of the players.
+height=cbind(height,c(176,168,161,172))
+print(height)
+
+#8. Append four more players' height in the matrix.
+height=rbind(height,c(175,162,170,165))
+print(height)
+```
+

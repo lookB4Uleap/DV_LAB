@@ -1,0 +1,75 @@
+---
+title: "Lab 3 : Statistical Plot"
+subtitle: "Reg no : 19BCE1278"
+author: "Name : Anish Sarkar"
+date: "Date : 04/02/2022"
+output: html_document
+---
+
+```{r}
+data("Orange")
+Orange <- na.omit(Orange)
+```
+
+# 1. Look at Orange using either head or as.tibble() (you’ll have to run library(tidyverse) for that second option). What type of data are each of the columns?
+
+```{r}
+head(Orange)
+```
+
+## Tree column has categorical data
+## Age column has discrete data
+## Circumference column has continuous data
+
+# 2. Find the mean, standard deviation, and standard error of tree circumference.
+
+```{r}
+mean(Orange$circumference) # mean
+sd(Orange$circumference) # standard deviation
+sd(Orange$circumference)/sqrt(nrow(Orange)) # standard errror
+```
+
+
+# 3. Make a linear model which describes circumference (the response) as a function of age (the predictor). Save it as an object with <-, then print the object out by typing its name. What do those coefficients mean?
+
+```{r}
+orange_model <- lm(circumference~age, data = Orange)
+orange_model
+```
+
+## The first value, 17.3997 is the intercept (c) of the line y = mx + c.
+## The second value, 0.1068 is the slope (m) of the line y = mx + c.
+
+
+# 4. Make another linear model describing age as a function of circumference. Save this as a different object.
+```{r}
+orange_model2 <- lm(age~circumference, data = Orange)
+orange_model2
+```
+
+## 5. Call summary() on both of your model objects. What do you notice?
+
+```{r}
+summary(orange_model) # First model
+summary(orange_model2) # Second model
+```
+
+## I can see from both the summary of the models that both model are highly significant as they have a very low p-value.
+
+# 6. Does this mean that trees growing makes them get older? Does a tree getting older make it grow larger? Or are these just correlations?
+
+```{r}
+  cor(Orange$age, Orange$circumference)
+  cor.test(Orange$age, Orange$circumference, method = "pearson")
+```
+
+## Age and Circumference of the the dataset are highly positively correlated. This means that if a tree grows old then it grows larger (circumference increases) and vice-versa.
+
+# 7. Does the significant p value prove that trees growing makes them get older? Why not?
+
+```{r}
+anova(orange_model)
+anova(orange_model2)
+```
+
+## Both the models have low p values which means that they are a statistically significant. Thus for both the models we are able to reject the null hypothesis and accept the alternate hypothesis. P values are a measure of the significance of the statistical analysis. It therefore is not responsible for conveying any relationship between the response and predictor variables. Thus knowing just the p values we cannot come to a conclusion that trees growing makes them old.

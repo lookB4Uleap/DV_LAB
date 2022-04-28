@@ -1,0 +1,160 @@
+---
+title: "Time Series Analysis"
+subtitle: "Reg no : 19BCE1278"
+author: "Name : Anish Sarkar"
+date: "Date : 03/03/2022"
+output: html_document
+---
+
+# Time Series Analyis
+
+
+```{r}
+library(jsonlite)
+library(dplyr)
+data <- fromJSON("https://raw.githubusercontent.com/datameet/covid19/master/data/all_totals.json", flatten = TRUE)
+```
+
+```{r}
+key_list <-data$row$key
+# glimpse(data)
+n <- length(unlist(key_list))
+
+v <- c(1:n)
+# v[v%%8 == 1]
+
+dates <- unlist(key_list)[v[v%%8 == 1]]
+length(dates)
+```
+
+
+```{r}
+date <- unlist(data$rows$key)
+data_csv <- data.frame(
+  day_num = c(1: length(dates)),
+  date = as.Date(unique(dates))
+)
+
+head(data_csv)
+```
+
+
+# Time Series Exercise Problem :
+
+Consider the COVID-19 pandemic situation. Analysis and forecast the pandemic trend by using Covid19 dataset :
+
+1. You want to predict the last year monthly, weekly trend based on the RTPCR response, (i.e.) No. of +Ve cases and No. –Ve cases along with admitted and discharged trend.
+
+2. Identify the death rate due to Covid-19.
+3. Compare the last year and this year trends with respect to 1st , 2nd and 3rd wave also forecast the 4th Wave impact in India.
+
+4. Construct the model using the Simple moving average, Exponential Moving Average and ARIMA to forecast the Covid19 Dataset.
+
+5. Show the all above implementation with the visual impact.
+
+
+```{r}
+n <- length(key_list)
+v1 <- c(1:n) 
+# data$rows$value[v1[v1%%4 == 1]]
+data_csv$active_cases <- data$rows$value[v1[v1%%4 == 1]]
+data_csv$cured <- data$rows$value[v1[v1%%4 == 2]]
+data_csv$death <- data$rows$value[v1[v1%%4 == 3]]
+data_csv$total_confirmed_cases <- data$rows$value[v1[v1%%4 == 0]]
+
+tail(data_csv)
+nrow(data_csv)
+```
+
+
+```{r}
+# data_csv <- read.csv('IndiaCovidCount.csv')
+```
+
+
+```{r}
+# active_cases_ts <- ts(data = data_csv$active_cases, frequency = 12, start=data_csv$date[1])
+active_cases_ts <- ts(data = data_csv$active_cases, start = c(2020,1,1), frequency = 365)
+plot.ts(active_cases_ts)
+```
+
+1. You want to predict the last year monthly, weekly trend based on the RTPCR response, (i.e.) No. of +Ve cases and No. –Ve cases along with admitted and discharged trend.
+
+```{r}
+start <- data_csv$day_num[data_csv$date == as.Date("2021-01-01")]
+end <- data_csv$day_num[data_csv$date == as.Date("2022-01-01")]
+active_cases_ts <- ts(data = data_csv$active_cases[c(start:nrow(data_csv))], start = c(2021,1,1), end = c(2022, 1, 1), frequency = 365)
+# active_cases_ts <- ts(data = data_csv$active_cases)
+# active_cases_ts
+plot.ts(active_cases_ts)
+```
+
+2. Identify the death rate due to Covid-19
+
+```{r}
+death <- abs(data_csv$death[c(2: nrow(data_csv))] - data_csv$death[c(1: (nrow(data_csv) - 1))])
+
+deaths_ts <- ts(data = death, start = c(2020,1,30), frequency = 365)
+plot.ts(deaths_ts)
+```
+
+### Death Rate
+
+```{r}
+data_csv$death[nrow(data_csv)]/data_csv$total_confirmed_cases[nrow(data_csv)]
+```
+
+### Death rate due to covid 19 in India is about 0.012.
+
+3. Compare the last year and this year trends with respect to 1st , 2nd and 3rd wave also forecast the 4th Wave impact in India
+
+```{r}
+active_cases_ts <- ts(data = data_csv$active_cases, start = c(2020, 1, 30), frequency = 365)
+forecast_covid_19 <- forecast::forecast(active_cases_ts, h=365)
+plot.ts(forecast_covid_19)
+plot(forecast_covid_19)
+```
+
+## According to this forecast the fourth wave of covid 19 may come between April and June of 2022.
+
+4. Construct the model using the Simple moving average, Exponential Moving Average and ARIMA to forecast the Covid19 Dataset.
+
+## Simple Moving Average 
+
+```{r}
+library(TTR)
+active_cases_ts_SMA <- SMA(active_cases_ts, n = 20)
+plot.ts(active_cases_ts_SMA)
+```
+
+## Exponential Moving Average
+
+```{r}
+library(pracma)
+active_cases_ts_EMA = movavg(active_cases_ts, n = 20, type = "e")
+plot.ts(active_cases_ts_EMA)
+```
+
+
+## ARIMA model
+
+```{r}
+# active_cases_ts <- ts(data = data_csv$active_cases, start = c(2020,1,30), frequency = 365)
+active_cases_ts_log = log(active_cases_ts)
+active_cases_ts_log[active_cases_ts_log == 'NaN'] = 0
+plot.ts(active_cases_ts_log)
+
+plot.ts(diff(active_cases_ts_log))
+# active_cases_ts_log
+acf(ts(diff(active_cases_ts_log)))
+pacf(ts(diff(active_cases_ts_log)))
+```
+
+### p=0, q=1 and d=1 (differenciating once) for ARIMA(p,d,q) -> therefore order of arima = (0,1,1) 
+
+```{r}
+(fit <- arima(active_cases_ts_log, c(0, 1, 1), seasonal = list(order = c(0, 1, 1), period = 100)))
+pred <- predict(fit, n.ahead = 365)
+ts.plot(active_cases_ts,2.718^pred$pred, lty = c(1,3))
+```
+

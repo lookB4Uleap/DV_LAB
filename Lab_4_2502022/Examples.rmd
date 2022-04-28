@@ -1,0 +1,184 @@
+---
+title: "Lab_25022022"
+author: "Anish Sarkar"
+date: "25/02/2022"
+output: html_document
+---
+
+Tasks : 
+PCA : Breast cancer dataset UCI repo
+LDA : Iris
+Time series: Covid-19, models : SMA, exponential moving average, ARIMA
+
+Lab Samples : 
+
+```{r}
+#Age of Death of Successive Kings of England
+#starting with William the Conqueror
+
+# Time Series
+
+kings <- scan("http://robjhyndman.com/tsdldata/misc/kings.dat",skip=3)
+# Read 42 items
+kings
+kingstimeseries <- ts(kings)
+kingstimeseries
+#Time Series:
+births <- scan("http://robjhyndman.com/tsdldata/data/nybirths.dat")
+#Read 168 items
+birthstimeseries <- ts(births, frequency=12, start=c(1946,1))
+birthstimeseries
+souvenir <- scan("http://robjhyndman.com/tsdldata/data/fancy.dat")
+souvenirtimeseries <- ts(souvenir, frequency=12, start=c(1987,1))
+souvenirtimeseries
+plot.ts(kingstimeseries)
+plot.ts(birthstimeseries)
+plot.ts(souvenirtimeseries)
+logsouvenirtimeseries <- log(souvenirtimeseries)
+plot.ts(logsouvenirtimeseries)
+#SMA - Simple Moving Average
+library("TTR")
+kingstimeseriesSMA3 <- SMA(kingstimeseries,n=3)
+plot.ts(kingstimeseriesSMA3)
+birthstimeseriescomponents <- decompose(birthstimeseries)
+birthstimeseriescomponents$seasonal # get the estimated values of the seasonal component
+plot(birthstimeseriescomponents)
+#Forecast using Exponential smoothing
+rain <- scan("http://robjhyndman.com/tsdldata/hurst/precip1.dat",skip=1)
+rainseries <- ts(rain,start=c(1813))
+plot.ts(rainseries)
+rainseriesforecasts <- HoltWinters(rainseries, beta=FALSE, gamma=FALSE)
+rainseriesforecasts
+rainseriesforecasts$fitted
+plot(rainseriesforecasts)
+rainseriesforecasts$SSE
+HoltWinters(rainseries, beta=FALSE, gamma=FALSE, l.start=23.56)
+#Forecast
+```
+
+```{r}
+# PCA
+
+mtcars.pca <- prcomp(mtcars[,c(1:7,10,11)], center = TRUE,scale. = TRUE)
+summary(mtcars.pca)
+str(mtcars.pca)
+library(devtools)
+install_github("vqv/ggbiplot")
+library(ggbiplot)
+ggbiplot(mtcars.pca)
+screeplot(mtcars.pca, type = "l", npcs = 15, main = "Screeplot of the first 10 PCs")
+cumpro <- cumsum(mtcars.pca$sdev^2 / sum(mtcars.pca$sdev^2))
+plot(cumpro[0:15], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+plot(mtcars.pca$x[,1],mtcars.pca$x[,2], xlab="PC1 (44.3%)", ylab = "PC2 (19%)", main = "PC1 / PC2 - plot")
+```
+
+```{r}
+# LDA
+
+library(ggplot2)
+require(MASS)
+# Load data
+data(iris)
+head(iris, 5)
+r <- lda(formula = Species ~ ., data = iris, prior = c(1,1,1)/3)
+r$prior
+r$counts
+r$means
+r$scaling
+r$svd
+prop = r$svd^2/sum(r$svd^2)
+prop
+r2 <- lda(formula = Species ~ ., data = iris, prior = c(1,1,1)/3, CV = TRUE)
+head(r2$class)
+head(r2$posterior, 3)
+train <- sample(1:150, 75)
+r3 <- lda(Species ~ ., iris, prior = c(1,1,1)/3, subset = train)
+plda = predict(object = r, # predictions
+newdata = iris[-train, ])
+head(plda$class) # classification result
+head(plda$posterior, 3)
+head(plda$x, 3) # LD projections
+plda_plot <- cbind(train, predict(r3)$x)
+plda_df <- data.frame(plda_plot)
+plda_df
+# ggplot(plda_df, aes(r2, r3)) + geom_point(aes(color = Species))
+
+```
+
+```{r}
+data(AirPassengers)
+class(AirPassengers)
+#This tells you that the data series is in a time series format
+start(AirPassengers)
+summary(AirPassengers)
+edit(AirPassengers)
+str(AirPassengers)
+names(AirPassengers)
+head(AirPassengers)
+tail(AirPassengers)
+library(dplyr)
+glimpse(AirPassengers)
+#This is the start of the time series
+frequency(AirPassengers)
+#The cycle of this time series is 12months in a year
+summary(AirPassengers)
+#The number of passengers are distributed across the spectrum
+plot(AirPassengers)
+#This will plot the time series
+abline(reg=lm(AirPassengers~time(AirPassengers)))
+#This will print the cycle across years.
+cycle(AirPassengers)
+plot(aggregate(AirPassengers,FUN=mean))
+#This will aggregate the cycles and display a year on year trend
+boxplot(AirPassengers~cycle(AirPassengers))
+#Box plot across months will give us a sense on seasonal effect
+# 1. There is a trend component which grows the passenger year by year.
+
+# 2. There looks to be a seasonal component which has a cycle less than 12 months.
+
+# 3. The variance in the data keeps on increasing with time.
+# ///adf.test(diff(log(AirPassengers)), alternative="stationary", k=0)
+acf(log(AirPassengers))
+pacf(diff(log(AirPassengers)))
+(fit <- arima(log(AirPassengers), c(0, 1, 1),seasonal = list(order = c(0, 1, 1), period = 12)))
+pred <- predict(fit, n.ahead = 10*12)
+ts.plot(AirPassengers,2.718^pred$pred, log = "y", lty = c(1,3))
+```
+
+
+Tasks :
+1. Use Breast Cancer Wisconsin data set from the UCI Machine learning repo to plot the PCA analysis. Use the ‘prcomp’ function runs PCA on the data. 
+i. You want to explain difference between malignant and benign tumors using Visualisation and add the response variable (diagnosis) to the plot 
+ii. Construct some kind of model using the first 6 principal components to predict whether a tumor is benign or malignant and then compare it to a model using the original 30 variables. 
+Use the below given packages to improve your results 
+library(devtools) 
+install_github("vqv/ggbiplot")
+
+2. Use the built-in iris dataset in R to plot the LDA analysis. Use the lda function of the MASS package in R 
+Project the LDA visual output and Compare the LDA and PCA 2D Projection of Iris dataset
+
+Time Series Exercise Problem
+ Consider the COVID-19 pandemic situation. Analysis and forecast the pandemic trend by using Covid19 dataset 
+1. You want to predict the last year monthly, weekly trend based on the RTPCR response, (i.e.) No. of +Ve cases and No. –Ve cases along with admitted and discharged trend. 
+2. Identify the death rate due to Covid-19 
+3. Compare the last year and this year trends with respect to 1st , 2nd and 3rd wave also forecast the 4th Wave impact in India 
+4. Construct the model using the Simple moving average, Exponential Moving Average and ARIMA to forecast the Covid19 Dataset. 
+5. Show the all above implementation with the visual impact 
+
+ 1. Use Breast Cancer Wisconsin data set from the UCI Machine learning repo to plot the PCA analysis. Use the ‘prcomp’ function runs PCA on the data. 
+i. You want to explain difference between malignant and benign tumors using Visualisation and add the response variable (diagnosis) to the plot 
+ii. Construct some kind of model using the first 6 principal components to predict whether a tumor is benign or malignant and then compare it to a model using the original 30 variables. 
+Use the below given packages to improve your results 
+library(devtools) 
+install_github("vqv/ggbiplot")
+
+2. Use the built-in iris dataset in R to plot the LDA analysis. Use the lda function of the MASS package in R 
+Project the LDA visual output and Compare the LDA and PCA 2D Projection of Iris dataset
+
+Time Series Exercise Problem
+ Consider the COVID-19 pandemic situation. Analysis and forecast the pandemic trend by using Covid19 dataset 
+1. You want to predict the last year monthly, weekly trend based on the RTPCR response, (i.e.) No. of +Ve cases and No. –Ve cases along with admitted and discharged trend. 
+2. Identify the death rate due to Covid-19 
+3. Compare the last year and this year trends with respect to 1st , 2nd and 3rd wave also forecast the 4th Wave impact in India 
+4. Construct the model using the Simple moving average, Exponential Moving Average and ARIMA to forecast the Covid19 Dataset. 
+5. Show the all above implementation with the visual impact

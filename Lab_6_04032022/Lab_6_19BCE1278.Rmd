@@ -1,0 +1,219 @@
+---
+title: "Social Network Analysis"
+subtitle: "Reg no : 19BCE1278"
+author: "Name : Anish Sarkar"
+date: "Date : 07/03/2022"
+output: html_document
+---
+
+
+```{r}
+links <- read.csv("Dataset2-Media-User-Example-EDGES.csv")
+nodes <- read.csv("Dataset2-Media-User-Example-NODES.csv")
+
+links
+nodes
+```
+
+```{r}
+library(igraph)
+mat_links <- as.matrix(links[, 2:21])
+row.names(mat_links) <- links$X
+mat_links
+net <- graph_from_incidence_matrix(mat_links, directed = T)
+plot(net, edge.arrow.size=.6, edge.curved=0,
+     vertex.color="orange", vertex.frame.color="#555555",
+     vertex.label=V(net)$media, vertex.label.color="black",
+     vertex.label.cex=.7)
+```
+
+## 1. Read the given adjacency matrix into R
+
+```{r}
+adj_links <- get.adjacency(net)
+adj_links
+```
+
+## 2. Read the given edge matrix into R
+
+```{r}
+edge_links <- get.edgelist(net, names = T)
+edge_links
+```
+
+## 3. Create and plot the graph from the adjacency matrix and edge matrix (customize the vertex color edge size, vertex frame and label)
+
+```{r}
+# from adjacency matrix
+net_adj <- graph.adjacency(adj_links, mode = "directed")
+plot(net_adj, edge.arrow.size=.6, edge.curved=0,
+     vertex.color="orange", vertex.frame.color="#555555",
+     vertex.label=V(net)$media, vertex.label.color="black",
+     vertex.label.cex=.7)
+```
+
+
+
+```{r}
+# from edge list
+net_edge <- graph.edgelist(edge_links, directed = T)
+plot(net_edge, edge.arrow.size=.6, edge.curved=0,
+     vertex.color="orange", vertex.frame.color="#555555",
+     vertex.label=V(net)$media, vertex.label.color="black",
+     vertex.label.cex=.7)
+```
+
+## 4. Display the edges & vertices, the network as matrix and the names of vertices
+
+```{r}
+E(net)
+V(net)
+
+# the network as matrix and the names of vertices
+as.matrix(get.data.frame(net))
+nodes$id
+```
+
+## 5. Find the count of vertices and edges of the created graph
+
+```{r}
+length(E(net))
+length(V(net))
+```
+
+## 6. Display the adjacency vertices of each vertex(individual) in the created graph
+
+```{r}
+v = 1:30
+v
+colnames(adj_links[, 2:21])[adj_links[1, 2:21] == TRUE]
+for (vertex in v) {
+  adj_vert <- colnames(adj_links[, 2:21])[adj_links[vertex, 2:21] == TRUE]
+  if (length(adj_vert) == 0) 
+    print(0)
+  else
+    print(adj_vert)
+}
+
+```
+
+## 7. Find the min and max degree of the created graph
+
+```{r}
+max(degree(net))
+min(degree(net))
+```
+
+## 8. Create & set vertex attribute property named profit and values("+", "-", "+", "-", "+", "-", "+", "-", "+")
+
+```{r}
+net2 = net
+profit = rep(c("+", "-"), 15)
+V(net2)$profit <- profit
+V(net2)
+```
+
+## 9. Create & set vertex attribute property named type and values(either leap or non-leap year)
+
+```{r}
+type <- sample(c("leap", "non-leap"), 30, replace = T)
+type
+V(net2)$type <- type
+```
+
+## 10. Create & set edge attribute named weight and values (if edge exits in between leap year vertices then 5 else 1 )
+
+```{r}
+type <- V(net2)$type
+# length(type[type == "leap"])
+index <- which(type == "leap")
+index
+weight <- rep(1, length(E(net2)))
+
+E(net2)$weight <- weight
+
+if (length(index) >= 2) {
+  # for (i in index[1] : index[length(index)]) {
+  #   if (V(net2)$type[i] != "leap")
+  #    weight[i] = 5
+  # }
+}
+
+for (i in index) {
+    for (j in index) {
+      if (i != j) {
+        id = get.edge.ids(net2, c(V(net2)[i], V(net2)[j]), directed = T) 
+        if (id != 0)
+        E(net2)$weight[id] = 5
+      }
+    }
+      
+}
+
+E(net2)$weight
+```
+
+## 11. Convert the created un-directed graph into directed graph based on the following rule
+## a. edge directed towards high value vertex
+## b. if any one of the vertex is leap year then put the reverse edge with same weight.
+
+```{r}
+net3 <- net2
+plot(net3, vertex.label = V(net3)$profit)
+
+# V(net3)$weight == 5
+high_val <- nodes$id[V(net3)$profit == "+"]
+high_val
+
+for (i in high_val) {
+  for (j in nodes$id) {
+    if (i != j & !(j %in% high_val)) {
+      id = get.edge.ids(net3 , c(i, j), directed = T)
+      net3 <- delete_edges(net3, E(net3)[id])
+
+    }
+  }
+}
+
+E(net3)
+plot(net3, vertex.label = V(net3)$profit)
+```
+
+
+```{r}
+plot(net3)
+E(net3)$weight
+
+type_leap_nodes <- nodes$id[V(net3)$type == "leap"]
+type_leap_nodes
+
+for (node in type_leap_nodes) {
+  for (vert in nodes$id) {
+    if (vert != node) {
+      id = get.edge.ids(net3, c(node, vert),  directed = T)
+      id_rev = get.edge.ids(net3 , c(vert, node), directed = T)
+      if (id != 0 & id_rev != 0) {
+        E(net3)$weight[id_rev] = E(net3)$weight[id]
+      }  
+    }
+    
+  }
+}
+
+E(net3)$weight
+plot(net3)
+```
+
+## 12. Display the adjacency matrix of the resultant directed graph.
+
+```{r}
+get.adjacency(net3)
+```
+
+## 13. Display the in-degree and out-degree of each vertex of resultant directed graph
+
+```{r}
+degree(net3, mode = "in")
+degree(net3, mode = "out")
+```
+

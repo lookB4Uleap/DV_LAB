@@ -1,0 +1,88 @@
+---
+title: "Clustering"
+subtitle: "19BCE1278"
+author: "Anish Sarkar"
+date: "11/03/2022"
+output: html_document
+---
+
+# K-MEANS 
+
+```{r}
+df <- iris
+df <- na.omit(df)
+
+df.class <- df[,"Species"]
+df <- df[,c(1,2,3,4)]
+
+head(df)
+summary(df)
+```
+
+```{r}
+normalize <- function(x){
+  return ((x-min(x))/(max(x)-min(x)))
+}
+
+df$Sepal.Length <- normalize(df$Sepal.Length)
+df$Sepal.Width <- normalize(df$Sepal.Width)
+df$Petal.Length <- normalize(df$Petal.Length)
+df$Petal.Width <- normalize(df$Petal.Width)
+
+head(df)
+```
+
+```{r}
+result<- kmeans(df, 3)
+
+result$cluster
+result$centers
+result$size
+
+par(mfrow=c(2,2), mar=c(5,4,2,2))
+plot(df[c(1,2)], col=result$cluster)
+plot(df[c(1,2)], col=df.class)
+plot(df[c(3,4)], col=df.class)
+result$cluster <- as.factor(result$cluster)
+```
+
+
+```{r}
+library(ggplot2)
+ggplot(df, aes(Petal.Length, Petal.Width, color = result$cluster)) + geom_point()
+plot(df[c("Sepal.Length", "Sepal.Width")], col=result$cluster)
+plot(df[,], col=result$cluster)
+```
+
+```{r}
+library(animation)
+km1<-kmeans.ani(df,3)
+library(factoextra) 
+fviz_cluster(result, data = df)
+k2 <- kmeans(df, centers = 2, nstart = 25)
+k3 <- kmeans(df, centers = 3, nstart = 25)
+k4 <- kmeans(df, centers = 4, nstart = 25)
+k5 <- kmeans(df, centers = 5, nstart = 25)
+
+```
+
+
+```{r}
+# plots to compare
+p1 <- fviz_cluster(k2, geom = "point", data = df) + ggtitle("k = 2")
+p2 <- fviz_cluster(k3, geom = "point",  data = df) + ggtitle("k = 3")
+p3 <- fviz_cluster(k4, geom = "point",  data = df) + ggtitle("k = 4")
+p4 <- fviz_cluster(k5, geom = "point",  data = df) + ggtitle("k = 5")
+library(gridExtra)
+grid.arrange(p1, p2, p3, p4, nrow = 2)
+
+```
+
+# DECISION TREES
+
+```{r}
+library(party)
+dtree <- ctree(Species~., data = as.list(iris))
+plot(dtree)
+```
+

@@ -1,0 +1,157 @@
+---
+title: "Lab 1"
+subtitle: "Reg no : 19BCE1278" 
+author: "Name : Anish Sarkar"
+date: "Date : 21/01/2022"
+output: html_document
+---
+
+
+
+```{r}
+library(lattice)
+data <- read.csv("hsb2.csv")
+View(data)
+head(data)
+```
+
+```{r}
+barchart(ses ~ write,
+         data = data,
+         main = "Barchart",
+         xlab = "Writing score",
+         ylab = "Socio-economic state"
+         )
+```
+
+
+```{r}
+barchart(ses ~ write | schtyp,
+         data = data,
+         main = "Barchart",
+         xlab = "Writing score",
+         ylab = "Socio-economic state"
+         )
+```
+
+
+```{r}
+histogram(~math, data = data, main = "Histogram")
+```
+
+```{r}
+histogram(~math | gender, data = data)
+```
+
+```{r}
+levelplot(read~write*math,
+          data=data,
+          main="Levelplot")
+```
+
+```{r}
+parallelplot(data[c(7,8,9,10,11)], main = "Parallel Plot")
+```
+
+```{r}
+stripplot(read~ses, data = data, main = "Stripplot")
+```
+
+```{r}
+stripplot(read~ses | schtyp, data = data)
+```
+
+```{r}
+wireframe(math~socst*science, data = data, main = "Wireframe")
+```
+
+
+
+```{r}
+xyplot(math ~ science,
+       data = data,
+       type = c("p","r"),
+       main = "XY plot"
+       )
+```
+
+```{r}
+xyplot(math ~ science | gender,
+       data = data,
+       type = c("p","r"), 
+       main = "XY plot"
+       )
+```
+
+
+```{r}
+densityplot(~math,
+            data = data,
+            plot.points = FALSE,
+            main = "Density Plot"
+            )
+```
+
+```{r}
+densityplot(~math | schtyp,
+            data = data,
+            plot.points = FALSE,
+            main = "Density Plot"
+            )
+```
+
+
+```{r}
+bwplot(~math | ses,
+       data = data,
+       main = "Boxplot",
+       layout = c(1,3)
+       )
+```
+
+
+```{r}
+cloud(math~science*socst,
+      data = data,
+      main = "3D scatter plot"
+      )
+```
+
+
+```{r}
+cloud(math~science*socst | prog,
+      data = data,
+      main = "3D scatter plot"
+      )
+```
+
+
+```{r}
+dotplot(write~read | prog,
+        data = data,
+        main = "Dotplot"
+        )
+```
+
+
+```{r}
+splom(data[c(7,8,9,10,11)], main = "hsb2 data")
+```
+
+```{r}
+bwplot(race~write| gender,
+       data = data,
+       panel = panel.violin)
+```
+
+```{r}
+data <- dimnames(volcano)
+contour(x=volcano, xlab = "Row", ylab = "Column", main = "Contour Plot") # Contour plot for volcano dataset
+```
+
+```{r}
+filled.contour(volcano)
+
+filled.contour(volcano,color.palette = terrain.colors)
+```
+
