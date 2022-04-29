@@ -1,0 +1,4 @@
+SCRIPT_INT('set.seed(42);
+result <- kmeans(data.frame(.arg1,.arg2,.arg3,.arg4), 3);
+result$cluster;', 
+SUM([Petal Length Cm]), SUM([Petal Width Cm]),SUM([Sepal Length Cm]),SUM([Sepal Width Cm]))

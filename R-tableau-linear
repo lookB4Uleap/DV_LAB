@@ -1,0 +1,4 @@
+SCRIPT_REAL('set.seed(42);
+fit <- lm(.arg1~.arg2)
+fit$fitted.values',
+SUM([Petal Length Cm]), SUM([Petal Width Cm]))
